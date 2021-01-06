@@ -1,6 +1,9 @@
 
 -- Load lsp config
-local ok, _ = pcall(function() require('lsp_config') end)
+local ok, msg = pcall(function() require('tj.lsp_config') end)
+if not ok then
+  print(msg)
+end
 
 RELOAD = require('plenary.reload').reload_module
 
@@ -24,21 +27,15 @@ require('tj.telescope')
 require('tj.telescope.mappings')
 
 require('tj.plenary')
-require('tj.grep')
 
 
 require('terminal').setup()
 
--- Run the first time to install it
-if false then
-  -- Load required packages
-  local neorocks = require("plenary.neorocks")
+for _, mod in ipairs(vim.api.nvim_get_runtime_file('lua/auto/**/*.lua', true)) do
+  ok, msg = pcall(loadfile(mod))
 
-  neorocks.install('penlight', 'pl')
-  neorocks.install('luasocket', 'socket')
-
-  neorocks.ensure_installed('penlight', 'pl')
-  neorocks.ensure_installed('lua-cjson', 'cjson')
-  neorocks.ensure_installed('luasocket', 'socket')
-  neorocks.ensure_installed('moses', 'moses')
+  if not ok then
+    print("Failed to load: ", mod)
+    print("\t", msg)
+  end
 end

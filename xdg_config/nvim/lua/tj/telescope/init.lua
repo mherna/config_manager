@@ -20,7 +20,6 @@ require('telescope').setup {
     winblend = 0,
     preview_cutoff = 120,
 
-    scroll_strategy = 'cycle',
     layout_strategy = 'horizontal',
     layout_defaults = {
       horizontal = {
@@ -35,14 +34,20 @@ require('telescope').setup {
       }
     },
 
+    selection_strategy = "reset",
     sorting_strategy = "descending",
-    prompt_position = "bottom",
+    scroll_strategy = "cycle",
+    prompt_position = "top",
     color_devicons = true,
 
     mappings = {
       i = {
         ["<c-x>"] = false,
         ["<c-s>"] = actions.goto_file_selection_split,
+
+        -- Experimental
+        ["<tab>"] = actions.add_selection,
+        ["<c-q>"] = actions.send_to_qflist,
       },
     },
 
@@ -52,8 +57,28 @@ require('telescope').setup {
     },
 
     file_sorter = sorters.get_fzy_sorter,
-  }
+
+    file_previewer   = require('telescope.previewers').vim_buffer_cat.new,
+    grep_previewer   = require('telescope.previewers').vim_buffer_vimgrep.new,
+    qflist_previewer = require('telescope.previewers').vim_buffer_qflist.new,
+  },
+
+  extensions = {
+    fzy_native = {
+      override_generic_sorter = false,
+      override_file_sorter = true,
+    },
+
+    fzf_writer = {
+      use_highlighter = false,
+      minimum_grep_characters = 4,
+    }
+  },
 }
+
+-- Load the fzy native extension at the start.
+require('telescope').load_extension('fzy_native')
+require('telescope').load_extension('ghcli')
 
 local M = {}
 
@@ -109,9 +134,22 @@ function M.git_files()
   require('telescope.builtin').git_files(opts)
 end
 
+function M.lsp_code_actions()
+  local opts = themes.get_dropdown {
+    winblend = 10,
+    border = true,
+    previewer = false,
+    shorten_path = false,
+  }
+
+  require('telescope.builtin').lsp_code_actions(opts)
+end
+
 function M.live_grep()
- require('telescope.builtin').live_grep {
-   shorten_path = true
+ require('telescope').extensions.fzf_writer.staged_grep {
+   shorten_path = true,
+   previewer = false,
+   fzf_separator = "|>",
  }
 end
 
@@ -167,6 +205,12 @@ end
 function M.help_tags()
   require('telescope.builtin').help_tags {
     show_version = true,
+  }
+end
+
+function M.search_all_files()
+  require('telescope.builtin').find_files {
+    find_command = { 'rg', '--no-ignore', '--files', },
   }
 end
 

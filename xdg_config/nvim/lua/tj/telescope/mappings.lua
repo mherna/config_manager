@@ -1,19 +1,22 @@
 
 
-local map_tele = function(key, f, options)
-  vim.api.nvim_set_keymap(
-    "n",
-    key,
-    string.format(
-      "<cmd>lua R('tj.telescope')['%s'](%s)<CR>",
-      f,
-      -- TODO: This is a bit of a hack... since it's possible inspect won't really work.
-      options and vim.inspect(options, { newline = '' }) or ''
-    ),
-    {
-      noremap = true,
-    }
+local map_tele = function(key, f, options, buffer)
+  local mode = "n"
+  local rhs = string.format(
+    "<cmd>lua R('tj.telescope')['%s'](%s)<CR>",
+    f,
+    options and vim.inspect(options, { newline = '' }) or ''
   )
+  local options = {
+    noremap = true,
+    silent = true,
+  }
+
+  if not buffer then
+    vim.api.nvim_set_keymap(mode, key, rhs, options)
+  else
+    vim.api.nvim_buf_set_keymap(0, mode, key, rhs, options)
+  end
 end
 
 vim.api.nvim_set_keymap('c', '<c-r><c-r>', '<Plug>(TelescopeFuzzyCommandSearch)', { noremap = false, nowait = true })
@@ -36,6 +39,7 @@ map_tele('<space>pp', 'project_search')
 map_tele('<space>fb', 'buffers')
 map_tele('<space>fp', 'my_plugins')
 map_tele('<space>fa', 'installed_plugins')
+map_tele('<space>fi', 'search_all_files')
 map_tele('<space>ff', 'curbuf')
 map_tele('<space>fh', 'help_tags')
 map_tele('<space>so', 'vim_options')
@@ -44,6 +48,4 @@ map_tele('<space>gp', 'grep_prompt')
 -- Telescope Meta
 map_tele('<space>fB', 'builtin')
 
--- LSP
-map_tele('<space>fr', 'lsp_references')
-map_tele('<space>fw', 'lsp_workspace_symbols', { ignore_filename = true })
+return map_tele

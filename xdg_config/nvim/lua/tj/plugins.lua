@@ -28,6 +28,8 @@ end
 
 return require('packer').startup {
   function(use)
+    use 'wbthomason/packer.nvim'
+
     local local_use = function(first, second)
       local plug_path, home
       if second == nil then
@@ -46,13 +48,13 @@ return require('packer').startup {
     end
 
     -- My Plugins
+    local_use 'contextprint.nvim'
     local_use 'nlua.nvim'
-    local_use 'tree-sitter-nlua'
+    local_use 'tree-sitter-lua'
     local_use 'vlog.nvim'
     local_use 'vim9jit'
     local_use 'colorbuddy.vim'
     local_use 'gruvbuddy.nvim'
-    local_use 'plenary.nvim'
     local_use 'apyrori.nvim'
     local_use 'py_package.nvim'
     local_use 'manillua.nvim'
@@ -65,17 +67,29 @@ return require('packer').startup {
     local_use 'command_and_conquer.nvim'
     local_use 'streamer.nvim'
     local_use 'wander.nvim'
+    local_use 'complextras.nvim'
+
+    local_use 'nsync.nvim'
+    use 'bfredl/nvim-luadev'
 
     local_use 'lsp_extensions.nvim'
 
     -- pcall(use, '~/plugins/scrollnv')
-    local_use('nvim-lua', 'telescope.nvim')
     local_use('nvim-lua', 'popup.nvim')
+    local_use('nvim-lua', 'plenary.nvim')
+
+    local_use('nvim-telescope', 'telescope.nvim')
+    local_use('nvim-telescope', 'telescope-fzy-native.nvim')
+    local_use('nvim-telescope', 'telescope-fzf-writer.nvim')
+    local_use('nvim-telescope', 'telescope-packer.nvim')
+
+    local_use('nvim-telescope', 'telescope-github.nvim')
+    local_use('nvim-telescope', 'telescope-symbols.nvim')
+
+    -- TODO: Need to get github token available
+    -- use 'pwntester/octo.nvim'
 
     -- local_use 'riki.nvim'
-
-    -- Packer can manage itself as an optional plugin
-    use {'wbthomason/packer.nvim', opt = true}
 
     -- PRACTICE: {{{
     use 'tpope/vim-projectionist'  -- STREAM: Alternate file editting and some helpful stuff
@@ -146,10 +160,12 @@ return require('packer').startup {
     -- Make cool signs for your files
     use 'johannesthyssen/vim-signit'
 
+    -- Crazy good box drawing
     use 'gyim/vim-boxdraw'
 
-    -- Helper to put stuff in quickfix
-    -- use 'neomake/neomake'
+    -- Better increment/decrement
+    -- use 'tpope/vim-speeddating'    -- Handle changing of dates in a nicer manner
+    use 'monaqa/dial.nvim'
 
     --   FOCUSING: {{{
     use 'junegunn/goyo.vim'
@@ -189,35 +205,55 @@ return require('packer').startup {
     use { 'pangloss/vim-javascript', ft = { 'javascript', 'html' } }
     use 'tpope/vim-liquid'
     -- }}}
+    -- Godot {{{
+    use 'habamax/vim-godot'
+    -- }}}
+    -- Lisp {{{
+    -- use { 'eraserhd/parinfer-rust', run = 'cargo build --release' }
+    -- }}}
     --  }}}
     -- LSP {{{
 
     -- Configurations for neovim lsp.
     --   neovim/neovim has all of the LSP code.
-    use 'neovim/nvim-lsp'
+    use 'neovim/nvim-lspconfig'
+    use 'wbthomason/lsp-status.nvim'
 
     -- STREAM: Figure out how to use snippets better
     use 'haorenW1025/completion-nvim'
-    use 'steelsojka/completion-buffers'
-    use 'nvim-treesitter/completion-treesitter'
+    use {
+      'nvim-treesitter/completion-treesitter',
+      run = function() vim.cmd [[TSUpdate]] end
+    }
+
+    -- TODO: I think this may be causing large buffers to slow considerably.
+    --       I also think I can just use ^X^N if I need to?...
+    -- use 'steelsojka/completion-buffers'
 
     -- use 'hrsh7th/vim-vsnip'
     -- use 'hrsh7th/vim-vsnip-integ'
     use 'norcalli/snippets.nvim'
     use 'norcalli/ui.nvim'
 
-    -- TODO: Merge in my LSP PR...
-    -- Plug 'haorenW1025/diagnostic-nvim'
-
-    use 'wbthomason/lsp-status.nvim'
-
     -- Cool tags based viewer
     --   :Vista  <-- Opens up a really cool sidebar with info about file.
     use 'liuchengxu/vista.vim'
 
+    -- Find and replace
+    use 'brooth/far.vim'
+
     -- Debug adapter protocol
     --   Have not yet checked this out, but looks awesome.
-    use 'puremourning/vimspector'
+    -- use 'puremourning/vimspector'
+    use 'mfussenegger/nvim-dap'
+    use 'mfussenegger/nvim-dap-python'
+    use { 
+      'theHamsta/nvim-dap-virtual-text',
+      run = function()
+        vim.g.dap_virtual_text = true
+      end
+    }
+
     -- }}}
     -- TREE SITTER: {{{
     local_use('nvim-treesitter', 'nvim-treesitter')
@@ -233,13 +269,15 @@ return require('packer').startup {
 
     use 'justinmk/vim-dirvish'
     use 'pechorin/any-jump.vim'
-    use 'andymass/vim-matchup'
+
+    -- Temporary disabled... getting real bad performance in some lua files.
+    --  Might just disable for Lua only?...
+    -- use 'andymass/vim-matchup'
 
     -- }}}
     -- TEXT MANIUPLATION {{{
     use 'godlygeek/tabular'        -- Quickly align text by pattern
     use 'tpope/vim-surround'       -- Surround text objects easily
-    use 'tpope/vim-speeddating'    -- Handle changing of dates in a nicer manner
     use 'tpope/vim-commentary'     -- Easily comment out lines or objects
     use 'tpope/vim-repeat'         -- Repeat actions better
     use 'tpope/vim-abolish'        -- Cool things with words!
@@ -268,8 +306,10 @@ return require('packer').startup {
     use 'rhysd/git-messenger.vim'
 
     -- Async signs!
-    if vim.fn.has 'unix' then
+    if 0 == vim.fn.has 'nvim-0.5' then
       use 'mhinz/vim-signify'
+    else
+      use 'lewis6991/gitsigns.nvim'
     end
     -- }}}
 
@@ -291,7 +331,7 @@ return require('packer').startup {
     use 'ThePrimeagen/vim-be-good'
   end,
   config = {
-    display = {
+    _display = {
       open_fn = function(name)
         -- Can only use plenary when we have our plugins.
         --  We can only get plenary when we don't have our plugins ;)
